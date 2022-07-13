@@ -14,7 +14,7 @@ def spliter(item: str):
     return result
 
 
-df = pd.read_csv('brand.csv', delimiter=';')
+df = pd.read_csv(r'C:\Pепозиторий\datastore-1\synonyms\brand.csv', delimiter=';')
 df['Synonyms'] = df['Synonyms'].apply(spliter)
 df['Word'] += ' ' + df['Synonyms']
 df = df['Word']

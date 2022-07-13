@@ -16,23 +16,23 @@ def rewrite_dict():
         custom_words, errors_words = custom_input.readlines(), errors_input.readlines()
 
     with open(f'{link}\\ru_CUSTOM.dic', 'w', encoding='utf-8') as custom_output, \
-         open(f'{link}\\ru_ERRORS.dic', 'r', encoding='utf-8') as errors_output:
+         open(f'{link}\\ru_ERRORS.dic', 'w', encoding='utf-8') as errors_output:
         new_true_words, new_false_words = set(custom_words + true_words), set(errors_words + false_words)
         custom_output.write(f'{str(len(new_true_words))}\n')
         errors_output.write(f'{str(len(new_false_words))}\n')
         custom_output.writelines(new_true_words)
         errors_output.writelines(new_false_words)
-        logger.debug(f'В ru_CUSTOM.dic добавлено {len(new_true_words)} новых слов.')
-        logger.debug(f'В ru_ERRORS.dic добавлено {len(new_false_words)} новых слов.')
+        logger.debug(f'В ru_CUSTOM.dic добавлено {len(true_words)} новых слов.')
+        logger.debug(f'В ru_ERRORS.dic добавлено {len(false_words)} новых слов.')
 
 
 def write(file: str, new_data: list) -> None:
     '''Примет название файла. Запишет файл с именем result_{file}.csv в папку со сценарием.'''
     file = file.split('\\')[-1]
-    with open(f'report\\result_{file}.csv', 'w', encoding='utf-8') as file_output:
+    with open(f'reports\\result_{file}.csv', 'w', encoding='utf-8') as file_output:
         file_output.write(head)
         file_output.writelines(new_data)
-        logger.debug(f'Записано {len(new_data)} строк.')
+        logger.debug(f'В файл отчета записано {len(new_data)} строк с ошибками.')
 
 
 def check_word(word: str) -> bool:
@@ -40,7 +40,7 @@ def check_word(word: str) -> bool:
     if dictionary_ru.check(word) or dictionary_custom.check(word) or dictionary_brands.check(word):
         return True
     elif dictionary_errors.check(word):
-        pass
+        return False
     else:
         if f'{word}\n' not in false_words and f'{word}\n' not in true_words:
             logger.info(f'Слово, проверяемое спеллером: {word}')
@@ -84,7 +84,7 @@ def make_dir():
 
 def main() -> None:
     make_dir()
-    data = read(file := input('file name: '))  # bucket-25-dress-search
+    data = read(file := input('Путь к файлу: '))
     new_data = check_lines(data)
     write(file, new_data)
     rewrite_dict()
