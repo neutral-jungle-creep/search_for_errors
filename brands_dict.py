@@ -24,7 +24,7 @@ df.to_csv('brands_result.txt', header=False, index=False)
 with open('brands_result.txt', 'r', encoding='utf-8') as file:
     brands = file.read().split()
     print(len(brands), *brands, sep='\n',
-          file=open(r'C:\CodePy\wb\search_errors\venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\brands.dic',
+          file=open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\brands.dic',
                     'w', encoding='utf-8'))
 
 path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'brands_result.txt')
