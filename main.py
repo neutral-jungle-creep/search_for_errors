@@ -29,7 +29,7 @@ def rewrite_dict():
 def write(file: str, new_data: list) -> None:
     '''Примет название файла. Запишет файл с именем result_{file}.csv в папку со сценарием.'''
     file = file.split('\\')[-1]
-    with open(f'result_{file}.csv', 'w', encoding='utf-8') as file_output:
+    with open(f'report\\result_{file}.csv', 'w', encoding='utf-8') as file_output:
         file_output.write(head)
         file_output.writelines(new_data)
         logger.debug(f'Записано {len(new_data)} строк.')
