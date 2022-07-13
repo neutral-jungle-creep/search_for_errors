@@ -4,17 +4,25 @@ import speller
 
 
 def rewrite_dict():
-    with open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\ru_CUSTOM.dic',
-              'r', encoding='utf-8') as dict_input:
-        dict_input.readline()
-        words = dict_input.readlines()
+    '''Перепишет пользовательские словари с верными словами и с ошибочными, добавит в них новые,
+     проверенные с помощью апи слова.'''
+    link = 'venv\\Lib\\site-packages\\enchant\\data\\mingw64\\share\\enchant\\hunspell'
 
-    with open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\ru_CUSTOM.dic',
-              'w', encoding='utf-8') as dict_output:
-        new_words = set(words + true_words)  # чтобы в словаре не было повторений
-        logger.debug(f'В ru_CUSTOM.dic добавлено {len(new_words)} новых слов.')
-        dict_output.write(f'{str(len(new_words))}\n')
-        dict_output.writelines(new_words)
+    with open(f'{link}\\ru_CUSTOM.dic', 'r', encoding='utf-8') as custom_input, \
+         open(f'{link}\\ru_ERRORS.dic', 'r', encoding='utf-8') as errors_input:
+        custom_input.readline()
+        errors_input.readline()
+        custom_words, errors_words = custom_input.readlines(), errors_input.readlines()
+
+    with open(f'{link}\\ru_CUSTOM.dic', 'w', encoding='utf-8') as custom_output, \
+         open(f'{link}\\ru_ERRORS.dic', 'r', encoding='utf-8') as errors_output:
+        new_true_words, new_false_words = set(custom_words + true_words), set(errors_words + false_words)
+        custom_output.write(f'{str(len(new_true_words))}\n')
+        errors_output.write(f'{str(len(new_false_words))}\n')
+        custom_output.writelines(new_true_words)
+        errors_output.writelines(new_false_words)
+        logger.debug(f'В ru_CUSTOM.dic добавлено {len(new_true_words)} новых слов.')
+        logger.debug(f'В ru_ERRORS.dic добавлено {len(new_false_words)} новых слов.')
 
 
 def write(file: str, new_data: list) -> None:
@@ -25,14 +33,13 @@ def write(file: str, new_data: list) -> None:
         file_output.writelines(new_data)
         logger.debug(f'Записано {len(new_data)} строк.')
 
-    with open(f'result_false.txt', 'w', encoding='utf-8') as report:
-        report.writelines(false_words)
-
 
 def check_word(word: str) -> bool:
     '''Примет слово. Если слово прошло проверку на грамматику, вернет правду.'''
     if dictionary_ru.check(word) or dictionary_custom.check(word) or dictionary_brands.check(word):
         return True
+    elif dictionary_errors.check(word):
+        pass
     else:
         if f'{word}\n' not in false_words and f'{word}\n' not in true_words:
             logger.info(f'Слово, проверяемое спеллером: {word}')
@@ -78,6 +85,6 @@ if __name__ == '__main__':
 
     dictionary_ru = enchant.Dict('ru_RU')  # русский словарь из Либры
     dictionary_custom = enchant.Dict('ru_CUSTOM')  # пользовательский словарь
+    dictionary_errors = enchant.Dict('ru_ERRORS')  # пользовательский словарь с неверными словами
     dictionary_brands = enchant.Dict('brands')  # словарь с брендами
-    # C:\CodePy\wb\search_errors\venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell
     main()
