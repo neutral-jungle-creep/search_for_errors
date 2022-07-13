@@ -1,6 +1,7 @@
 import enchant
 from loguru import logger
 import speller
+import os
 
 
 def rewrite_dict():
@@ -73,7 +74,16 @@ def read(file: str) -> list:
     return data
 
 
+def make_dir():
+    '''Создаст папку для отчетов, если она еще не существует.'''
+    try:
+        os.mkdir('reports')
+    except Exception:
+        pass
+
+
 def main() -> None:
+    make_dir()
     data = read(file := input('file name: '))  # bucket-25-dress-search
     new_data = check_lines(data)
     write(file, new_data)
