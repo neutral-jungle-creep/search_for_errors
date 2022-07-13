@@ -3,13 +3,30 @@ from loguru import logger
 import speller
 
 
+def rewrite_dict():
+    with open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\ru_CUSTOM.dic',
+              'r', encoding='utf-8') as dict_input:
+        dict_input.readline()
+        words = dict_input.readlines()
+
+    with open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\ru_CUSTOM.dic',
+              'w', encoding='utf-8') as dict_output:
+        new_words = set(words + true_words)  # чтобы в словаре не было повторений
+        logger.debug(f'В ru_CUSTOM.dic добавлено {len(new_words)} новых слов.')
+        dict_output.write(f'{str(len(new_words))}\n')
+        dict_output.writelines(new_words)
+
+
 def write(file: str, new_data: list) -> None:
     '''Примет название файла. Запишет файл с именем result_{file}.csv в папку со сценарием.'''
     file = file.split('\\')[-1]
     with open(f'result_{file}.csv', 'w', encoding='utf-8') as file_output:
         file_output.write(head)
         file_output.writelines(new_data)
-        logger.info(f'Записано {len(new_data)} строк.')
+        logger.debug(f'Записано {len(new_data)} строк.')
+
+    with open(f'result_false.txt', 'w', encoding='utf-8') as report:
+        report.writelines(false_words)
 
 
 def check_word(word: str) -> bool:
@@ -17,11 +34,15 @@ def check_word(word: str) -> bool:
     if dictionary_ru.check(word) or dictionary_custom.check(word) or dictionary_brands.check(word):
         return True
     else:
-        if word not in false_words_set:
-            false_words_set.append(word)
-            logger.info(f'слово добавлено в false_words_set: {word}')
-            speller.ya_speller(word)
-
+        if f'{word}\n' not in false_words and f'{word}\n' not in true_words:
+            logger.info(f'Слово, проверяемое спеллером: {word}')
+            if speller.ya_speller(word):
+                true_words.append(f'{word}\n')
+                return True
+            false_words.append(f'{word}\n')
+            return False
+        elif f'{word}\n' in true_words:
+            return True
     return False
 
 
@@ -41,7 +62,7 @@ def read(file: str) -> list:
         global head
         head = file_input.readline()
         data = file_input.readlines()
-        logger.info(f'Прочитано {len(data)} строк.')
+        logger.debug(f'Прочитано {len(data)} строк.')
     return data
 
 
@@ -49,12 +70,14 @@ def main() -> None:
     data = read(file := input('file name: '))  # bucket-25-dress-search
     new_data = check_lines(data)
     write(file, new_data)
+    rewrite_dict()
 
 
 if __name__ == '__main__':
-    false_words_set = []  # список слов до проверки спеллера
+    true_words, false_words = [], []  # список из слов, прошедших проверку и не прошедших
+
     dictionary_ru = enchant.Dict('ru_RU')  # русский словарь из Либры
     dictionary_custom = enchant.Dict('ru_CUSTOM')  # пользовательский словарь
     dictionary_brands = enchant.Dict('brands')  # словарь с брендами
-    # C:\CodePy\wb\spellcheck\venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell
+    # C:\CodePy\wb\search_errors\venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell
     main()
