@@ -18,8 +18,7 @@ def write_dict(dicts: tuple) -> None:
 
 
 def read_dict() -> tuple:
-    '''Перепишет пользовательские словари с верными словами и с ошибочными, добавит в них новые,
-     проверенные с помощью апи слова.'''
+    '''Прочитает словари из библиотеки, вернет кортеж с данными из них.'''
     custom_words, errors_words = [], []
     try:
         with open(f'{link}\\ru_CUSTOM.dic', 'r', encoding='utf-8') as custom_input, \
