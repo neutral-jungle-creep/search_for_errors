@@ -4,26 +4,32 @@ import speller
 import os
 
 
-def rewrite_dict():
-    '''Перепишет пользовательские словари с верными словами и с ошибочными, добавит в них новые,
-     проверенные с помощью апи слова.'''
-    link = 'venv\\Lib\\site-packages\\enchant\\data\\mingw64\\share\\enchant\\hunspell'
-
-    with open(f'{link}\\ru_CUSTOM.dic', 'r', encoding='utf-8') as custom_input, \
-         open(f'{link}\\ru_ERRORS.dic', 'r', encoding='utf-8') as errors_input:
-        custom_input.readline()
-        errors_input.readline()
-        custom_words, errors_words = custom_input.readlines(), errors_input.readlines()
-
+def write_dict(dicts: tuple) -> None:
+    '''Примет кортеж с прочитанными словарями, добавит новые слова, полученные из спеллера в них.'''
     with open(f'{link}\\ru_CUSTOM.dic', 'w', encoding='utf-8') as custom_output, \
-         open(f'{link}\\ru_ERRORS.dic', 'w', encoding='utf-8') as errors_output:
-        new_true_words, new_false_words = custom_words + true_words, errors_words + false_words
+            open(f'{link}\\ru_ERRORS.dic', 'w', encoding='utf-8') as errors_output:
+        new_true_words, new_false_words = dicts[0] + true_words, dicts[1] + false_words
         custom_output.write(f'{str(len(new_true_words))}\n')
         errors_output.write(f'{str(len(new_false_words))}\n')
         custom_output.writelines(new_true_words)
         errors_output.writelines(new_false_words)
         logger.debug(f'В ru_CUSTOM.dic добавлено {len(true_words)} новых слов.')
         logger.debug(f'В ru_ERRORS.dic добавлено {len(false_words)} новых слов.')
+
+
+def read_dict() -> tuple:
+    '''Перепишет пользовательские словари с верными словами и с ошибочными, добавит в них новые,
+     проверенные с помощью апи слова.'''
+    custom_words, errors_words = [], []
+    try:
+        with open(f'{link}\\ru_CUSTOM.dic', 'r', encoding='utf-8') as custom_input, \
+             open(f'{link}\\ru_ERRORS.dic', 'r', encoding='utf-8') as errors_input:
+            custom_input.readline()
+            errors_input.readline()
+            custom_words, errors_words = custom_input.readlines(), errors_input.readlines()
+    except Exception:
+        pass
+    return custom_words, errors_words
 
 
 def write(file: str, new_data: list) -> None:
@@ -97,10 +103,11 @@ def main() -> None:
     data = read(file := input('Путь к файлу: '))
     new_data = check_lines(data)
     write(file, new_data)
-    rewrite_dict()
+    write_dict(read_dict())
 
 
 if __name__ == '__main__':
+    link = 'venv\\Lib\\site-packages\\enchant\\data\\mingw64\\share\\enchant\\hunspell'  # ссылка на словари
     true_words, false_words = [], []  # список из слов, прошедших проверку и не прошедших
     counter = 0
 
