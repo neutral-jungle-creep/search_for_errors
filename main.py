@@ -17,7 +17,7 @@ def rewrite_dict():
 
     with open(f'{link}\\ru_CUSTOM.dic', 'w', encoding='utf-8') as custom_output, \
          open(f'{link}\\ru_ERRORS.dic', 'w', encoding='utf-8') as errors_output:
-        new_true_words, new_false_words = set(custom_words + true_words), set(errors_words + false_words)
+        new_true_words, new_false_words = custom_words + true_words, errors_words + false_words
         custom_output.write(f'{str(len(new_true_words))}\n')
         errors_output.write(f'{str(len(new_false_words))}\n')
         custom_output.writelines(new_true_words)
@@ -37,12 +37,14 @@ def write(file: str, new_data: list) -> None:
 
 def check_word(word: str) -> bool:
     '''Примет слово. Если слово прошло проверку на грамматику, вернет правду.'''
+    global counter
     if dictionary_ru.check(word) or dictionary_custom.check(word) or dictionary_brands.check(word):
         return True
     elif dictionary_errors.check(word):
         return False
     else:
         if f'{word}\n' not in false_words and f'{word}\n' not in true_words:
+            counter += 1
             logger.info(f'Слово, проверяемое спеллером: {word}')
             if speller.ya_speller(word):
                 true_words.append(f'{word}\n')
@@ -56,11 +58,19 @@ def check_word(word: str) -> bool:
 
 def check_lines(data: list) -> list:
     '''Примет список строк из файла. Вернет отредактированный список строк.'''
+    stop = 0
     new_data = []
     for line in data:
-        for word in line.split('|')[0].replace('(', '').replace(')', '').split():
-            if not check_word(word):
-                new_data.append(line)
+        if not stop:
+            for word in line.split('|')[0].replace('(', '').replace(')', '').split():
+                if 9_000 == counter:  # лимит запросов api в сутки
+                    stop = 1
+                    logger.debug(f'Лимит запросов в сутки израсходован: {counter}')
+                    break
+                if not check_word(word):
+                    new_data.append(line)
+        else:
+            return new_data
     return new_data
 
 
@@ -92,6 +102,7 @@ def main() -> None:
 
 if __name__ == '__main__':
     true_words, false_words = [], []  # список из слов, прошедших проверку и не прошедших
+    counter = 0
 
     dictionary_ru = enchant.Dict('ru_RU')  # русский словарь из Либры
     dictionary_custom = enchant.Dict('ru_CUSTOM')  # пользовательский словарь
