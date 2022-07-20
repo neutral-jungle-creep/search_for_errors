@@ -3,29 +3,34 @@ DOCSTRING: Makes a dictionary for the main program from a file
 INPUT: brands.csv
 OUTPUT: brands.dic
 '''
-import pandas as pd
+import json
 from loguru import logger
-import os
 
 
-def spliter(item: str):
-    result = ' '.join(item.split('|'))
-    logger.info(result)
-    return result
+def write_dict(brands: list[str]) -> None:
+    with open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\brands.dic',
+              'w', encoding='utf-8') as brands_dic_output, \
+         open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\brands.aff',
+              'w', encoding='utf-8') as brands_aff_output:
+        data = [x for xs in brands for x in xs]
+        logger.debug(f'{len(data)}')
+        brands_dic_output.write(str(len(data))+'\n')
+        brands_dic_output.writelines(data)
+        brands_aff_output.writelines(["SET UTF-8\n",
+"TRY иаоентрвсйлпкыьямдушзбгчщюжцхфэъАКСВПМГБЛТДНИОРФЭЕХЧУЗШЯЮЦЖЙЩesianrtolcdugmphbyfvkwzESIANRTOLCDUGMPHBYFVKWZ'"])
 
 
-df = pd.read_csv(r'C:\Pепозиторий\datastore-1\synonyms\brand.csv', delimiter=';')
-df['Synonyms'] = df['Synonyms'].apply(spliter)
-df['Word'] += ' ' + df['Synonyms']
-df = df['Word']
+def read_file() -> list:
+    with open('brand_list.json', 'r', encoding='utf-8') as brands_input:
+        data = json.load(brands_input)
+        logger.debug(f'Прочитано {len(data)} записей.')
+    return [[f'{word.lower()}\n' for word in brand["name"].split()] for brand in data]
 
-df.to_csv('brands_result.txt', header=False, index=False)
 
-with open('brands_result.txt', 'r', encoding='utf-8') as file:
-    brands = file.read().split()
-    print(len(brands), *brands, sep='\n',
-          file=open(r'venv\Lib\site-packages\enchant\data\mingw64\share\enchant\hunspell\brands.dic',
-                    'w', encoding='utf-8'))
+def main() -> None:
+    brands = read_file()
+    write_dict(brands)
 
-path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'brands_result.txt')
-os.remove(path)  # del brands_result.txt
+
+if __name__ == '__main__':
+    main()
